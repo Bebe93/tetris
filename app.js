@@ -1,22 +1,28 @@
 document.addEventListener("DOMContentLoaded", () => {
   const startBtn = document.querySelector("button");
   const grid = document.querySelector(".grid");
+  const scoreDisplay = document.querySelector(".score-display");
+  const linesDisplay = document.querySelector(".lines-display");
   let displaySquares = document.querySelectorAll(".previous-grid div"); //show previous tetramino
   let squares = Array.from(grid.querySelectorAll("div"));
   const width = 10;
   const height = 20;
   let currentPosition = 4;
+  let currentRotation = 0;
   let nextRandom = 0;
-  let timerId = 0;
+  let timerId;
+  let currentIndex = 0;
+  let score = 0;
+  let lines = 0;
 
   function control(e) {
-    if (e.KeyCode === 39) {
+    if (e.keyCode === 39) {
       moveRight();
-    } else if (e.KeyCode === 38) {
+    } else if (e.keyCode === 38) {
       rotate();
-    } else if (e.KeyCode === 37) {
+    } else if (e.keyCode === 37) {
       moveLeft();
-    } else if (e.KeyCode === 40) {
+    } else if (e.keyCode === 40) {
       moveDown();
     }
   }
@@ -66,7 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   let random = Math.floor(Math.random() * theTetrominoes.length);
-  let currentRotation = 0;
   let current = theTetrominoes[random][currentRotation];
 
   function draw() {
@@ -169,6 +174,8 @@ document.addEventListener("DOMContentLoaded", () => {
       currentPosition = 4;
       draw();
       displayShape();
+      gameOver();
+      addScore();
     }
   }
 
@@ -183,4 +190,45 @@ document.addEventListener("DOMContentLoaded", () => {
       displayShape();
     }
   });
+
+  function gameOver() {
+    if (
+      current.some((index) =>
+        square[currentPosition + index].classList.contains("block2")
+      )
+    ) {
+      scoreDisplay.innerHTML = "end";
+      clearInterval(timerId);
+    }
+  }
+
+  function addScore() {
+    for (currentIndex = 0; currentIndex < 199; currentIndex += width) {
+      const row = [
+        currentIndex,
+        currentIndex + 1,
+        currentIndex + 2,
+        currentIndex + 3,
+        currentIndex + 4,
+        currentIndex + 5,
+        currentIndex + 6,
+        currentIndex + 7,
+        currentIndex + 8,
+        currentIndex + 9,
+      ];
+      if (row.every((index) => squares[index].classList.contains("block2"))) {
+        score += 10;
+        lines += 1;
+        scoreDisplay.innerHTML = score;
+        linesDisplay.innerHTML = lines;
+        row.forEach((index) => {
+          squares[index].classList.remove("block2") ||
+            squares[index].classList.remove("block");
+        });
+        const squaresRemoved = squares.splice(currentIndex, width);
+        squares = squaresRemoved.concat(squares);
+        squares.forEach((cell) => grid.appendChild(cell));
+      }
+    }
+  }
 });
